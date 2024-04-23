@@ -9,6 +9,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 import ssl
 import logging
+import base64
 
 def get_file_count(db_file, table, status_column=None, status=None, date_column=None, date=None):
     try:
@@ -96,11 +97,16 @@ def send_daily_status_email():
         failed_files = get_file_count(db_file, "SourceFile", status_column="status", status="Failed", date_column="updated_datetime", date=today_date)
         deleted_files = get_file_count(db_file, "SourceFile", status_column="status", status="Deleted", date_column="updated_datetime", date=today_date)
 
+        # Function to decode Base64 encoded variables
+        def decode_variable(encoded_variable):
+            decoded_variable = base64.b64decode(encoded_variable.encode()).decode()
+            return decoded_variable
+
         # Email content
-        sender_email = os.environ.get('EMAIL_SENDER')
-        receiver_email = os.environ.get('EMAIL_RECEIVER')
-        cc_emails = os.environ.get('EMAIL_CC', '').split(',')  # Split multiple emails by comma
-        password = os.environ.get('EMAIL_PASSWORD')
+        sender_email = decode_variable(os.environ.get('EMAIL_SENDER'))
+        receiver_email = decode_variable(os.environ.get('EMAIL_RECEIVER'))
+        cc_emails = decode_variable(os.environ.get('EMAIL_CC', '')).split(',') # Split multiple emails by comma
+        password = decode_variable(os.environ.get('EMAIL_PASSWORD'))
         subject = "Daily Status Report"
         body = f"Date: {today_date}\nTotal files: {total_files}\nProcessed files: {processed_files}\nFailed files: {failed_files}\nDeleted files: {deleted_files}"
         attachment_paths = [

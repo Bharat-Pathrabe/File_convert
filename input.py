@@ -3,6 +3,7 @@ import os
 import datetime
 import sqlite3
 import logging
+import base64
 
 # Define the path to the log file
 log_file_path = 'logs/file_convert.log'
@@ -16,12 +17,17 @@ if not os.path.exists(log_file_path):
 # Set up logging
 logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Function to decode Base64 encoded variables
+def decode_variable(encoded_variable):
+    decoded_variable = base64.b64decode(encoded_variable.encode()).decode()
+    return decoded_variable
 
-# Fetch environment variables for SSH connection
-host = os.environ.get('SSH_HOST')
-username = os.environ.get('SSH_USERNAME')
-password = os.environ.get('SSH_PASSWORD')
-port = int(os.environ.get('SSH_PORT', 22)) 
+# Fetch encoded environment variables for SSH connection and decode it
+host = decode_variable(os.environ.get('SSH_HOST'))
+username = decode_variable(os.environ.get('SSH_USERNAME'))
+password = decode_variable(os.environ.get('SSH_PASSWORD'))
+port = int(decode_variable(os.environ.get('SSH_PORT', '22')))
+
 
 # Create SSH client
 ssh_client = paramiko.SSHClient()
